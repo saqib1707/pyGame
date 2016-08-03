@@ -80,9 +80,9 @@ def leftTopCoordsOfBox(box_x,box_y):
 def getShapeAndColor(board,box_x,box_y):
 	return (board[box_x][box_y][0],board[box_x][box_y][1])
 
-#def drawIcon(shape,color):
-	#if shape=='donut':
-		#pygame.draw.circle(display_turf,)
+def drawIcon(shape,color):
+	if shape=='donut':
+		pygame.draw.circle(display_turf,)
 
 
 def drawBoard(board,revealed):
