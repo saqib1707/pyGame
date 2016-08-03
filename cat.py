@@ -1,3 +1,4 @@
+#  https://www.youtube.com/watch?v=VifTnJRkfUM
 import pygame,sys
 from pygame.locals import *
 
@@ -12,6 +13,12 @@ direction='right'
 catImg=pygame.image.load('/home/saqib1707/Desktop/My Images/cat.png')
 catx=150
 caty=350
+
+fontObj=pygame.font.Font('freesansbold.ttf',32)
+textSurfaceObj=fontObj.render('One round completed',False,(0,255,0))
+textRectObj=textSurfaceObj.get_rect()
+textRectObj.center=(300,250)
+
 while True:
 	display_surf.fill((128,128,128))
 	if direction=='right':
@@ -30,8 +37,10 @@ while True:
 		caty+=5
 		if caty>=350:
 			direction='right'
-
-	display_surf.blit(catImg,(catx,caty))
+	if (catx==150 and caty==350):
+		display_surf.blit(textSurfaceObj,textRectObj)
+	else:
+		display_surf.blit(catImg,(catx,caty))
 
 	for event in pygame.event.get():
 		if event.type==QUIT:
