@@ -34,7 +34,7 @@ while True:
 	display_surf.blit(catImg,(catx,caty))
 
 	for event in pygame.event.get():
-		if event==QUIT:
+		if event.type==QUIT:
 			pygame.quit()
 			sys.exit()
 		pygame.display.update()
