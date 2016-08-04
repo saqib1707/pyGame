@@ -78,22 +78,35 @@ def leftTopCoordsOfBox(box_x,box_y):
 	return (x_margin+box_x*(boxSize+gapSize),y_margin+box_y*(boxSize+gapSize))
 
 def getShapeAndColor(board,box_x,box_y):
-	return (board[box_x][box_y][0],board[box_x][box_y][1])
+	return board[box_x][box_y][0],board[box_x][box_y][1]
 
-def drawIcon(shape,color):
+def drawIcon(shape,color,box_x,box_y):
+	left,top=leftTopCoordsOfBox(box_x,box_y)
+	x_center=left+boxSize/2
+	y_center=top+boxSize/2
 	if shape=='donut':
-		pygame.draw.circle(display_turf,)
+		pygame.draw.circle(display_turf,color,(x_center,y_center),boxSize/2,5)
+	elif shape=='diamond':
+		pygame.draw.polygon(display_turf,color,((x_center,top),(left+boxSize,y_center),(x_center,top+boxSize),(left,y_center)))
+	elif shape=='square':
+		pygame.draw.rect(display_turf,color,(left+boxSize/4,top+boxSize/4,boxSize/2,boxSize/2))
+	elif shape=='lines':
+		for i in range(0, BOXSIZE, 4):
+			pygame.draw.line(display_turf, color, (left, top + i), (left +i, top))
+			pygame.draw.line(display_turf, color, (left + i, top + boxSize- 1), (left + boxSize - 1, top + i))
+	elif shape=='oval':
+		pygame.draw.ellipse(display_turf,color,(left,top+boxSize/4,boxSize,boxSize/2))
 
 
 def drawBoard(board,revealed):
 	for box_x in range(boardWidth):
 		for box_y in range(boardHeight):
-			if not revealed[x][y]:
+			if not revealed[box_x][box_y]:
 				left,top=leftTopCoordsOfBox(box_x,box_y)
 				pygame.draw.rect(display_turf,box_color,(left,top,boxSize,boxSize))
 			else:
 				shape,color=getShapeAndColor(board,box_x,box_y)
-				drawIcon(shape,color)
+				drawIcon(shape,color,box_x,box_y)
 
 def startGameAnimation(board):
 	coveredBoxes=generateRevealedBoxesData(False)
