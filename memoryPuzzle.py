@@ -41,6 +41,7 @@ All_Colors=(purple,blue,green,red,cyan,yellow,orange)
 All_Shapes=(donut,square,oval,diamond,lines)
 
 def main():
+
 	pygame.init()
 	fpsClock=pygame.time.Clock()
 	global display_turf
@@ -85,13 +86,39 @@ def main():
 					getShape2,getColor2=getShapeAndColor(mainBoard,box_x,box_y)
 					if getShape1==getShape2 and getColor1==getColor2:
 						revealedBoxes[box_x][box_y]=True
-					else:
-						coverBoxesAnimation(mainBoard,firstSelected[0],firstSelected[1])
-						coverBoxesAnimation(mainBoard,box_x,box_y)
+						revealedBoxes[firstSelected[0],firstSelected[1]]=True
+						if hasGameWon(revealedBoxes):
+							gameWonAnimation(mainBoard)
+							pygame.time.wait(3000)
+
+							getRandomizedBoard()
+							generateRevealedBoxesData(False)
+
+							startGameAnimation(mainBoard)
+
+					elif getshape1!=getShape2 or getColor1!=getColor2:
+						pygame.time.wait(1000)
+						coverBoxesAnimation(mainBoard,[(firstSelected[0],firstSelected[1]),(box_x,box_y)])
 						revealedBoxes[box_x][box_y]=False
 						revealedBoxes[firstSelected[0]][firstSelected[1]]=False
-						
+		pygame.display.update()
 
+						
+def hasGameWon(revealedBoxes):
+	flag=True
+	for box_x in range(boardWidth):
+		for box_y in range(boardHeight):
+
+			if revealedBoxes[box_x][box_y]==False:
+				return False
+	return True
+
+def gameWonAnimation(board):
+	display_turf.fill(navyBlue)
+	pygame.display.update()
+	pygame.time.wait(2000)
+	
+ 
 def getBoxNumber(mouse_x,mouse_y):
 	for box_x in range(boardWidth):
 		for box_y in range(boardHeight):
