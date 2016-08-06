@@ -13,11 +13,10 @@ yellow=(255,255,0)
 purple=(255,0,255)
 orange=(255,128,0)
 
-
 donut='donut'
 square='square'
 diamond='diamond'
-lines='line'
+lines='lines'
 oval='oval'
 
 backgroundColor=navyBlue
@@ -25,60 +24,59 @@ lightBgColor=gray
 boxColor=white
 highlightColor=blue
 
-windowHeight=480
 windowWidth=640
+windowHeight=480
 boxSize=40
 gapSize=10
-boardHeight=7
 boardWidth=10
+boardHeight=7
+
+groupSize=8
 
 assert (boardWidth*boardHeight)%2==0,"Board should have even number of boxes"
 
-x_margin=int((windowWidth-(boardWidth*(boxSize+gapSize)))/2)
-y_margin=int((windowHeight-(boardHeight*(boxSize+gapSize)))/2)
+x_margin=int((windowWidth-(boardWidth*(boxSize+gapSize)))/2)     # comes out to be 70 for above cases
+y_margin=int((windowHeight-(boardHeight*(boxSize+gapSize)))/2)   # comes out to be 65 for above cases
 
 All_Colors=(purple,blue,green,red,cyan,yellow,orange)
 All_Shapes=(donut,square,oval,diamond,lines)
 
 def main():
-
 	pygame.init()
-	fpsClock=pygame.time.Clock()
-	global display_turf
-	display_turf=pygame.display.set_mode((windowWidth,windowHeight))
+	fpsClock=pygame.time.Clock()                                         # initializing the clock
+	global display_surface
+	display_surface=pygame.display.set_mode((windowWidth,windowHeight))     #  will return a surface object on which everything will
+																			#  be laid upon
 	pygame.display.set_caption('Memory Puzzle')
-	display_turf.fill(black)
-	mainBoard=getRandomizedBoard()
-
-	revealedBoxes=generateRevealedBoxesData(False)
-	startGameAnimation(mainBoard)
-
+	display_surface.fill(backgroundColor)
+	mainBoard=getRandomizedBoard()                              # will return a 10x7 board with each place containing a tuple of 
+																# (color,shape)
+	revealedBoxes=generateRevealedBoxesData(False)    # will return a 10 x 7 list revealing the state( T or F )of individual boxes 
+														# whether it is revealed or covered.In the beginning it is False by default
+	startGameAnimation(mainBoard) 
+	mouse_x=0
+	mouse_y=0            
 	while True:
-		display_turf.fill(backgroundColor)
+		display_surface.fill(backgroundColor)
 		isMouseClicked=False
 		firstSelected=None
 
 		drawBoard(mainBoard,revealedBoxes)
 		for event in pygame.event.get():
-
 			if event.type==QUIT:
 				pygame.quit()
 				sys.exit()
 			elif event.type==MOUSEMOTION:
-				mouse_x,mouse_y=event.pos()
-			elif event.type=MOUSEBUTTONUP:
-				mouse_x,mouse_y=event.pos()
+				mouse_x,mouse_y=event.pos
+			elif event.type==MOUSEBUTTONUP:
+				mouse_x,mouse_y=event.pos
 				isMouseClicked=True
-
 		box_x,box_y=getBoxNumber(mouse_x,mouse_y)
 		if box_x!=None and box_y!=None:
-
 			if not revealedBoxes[box_x][box_y]:
-				drawHighlightColor(mainboard,box_x,box_y)
-
+				drawHighlightColor(mainBoard,box_x,box_y)
 			if not revealedBoxes[box_x][box_y] and isMouseClicked==True:
-
-				revealBoxesAnimation(mainBoard,[(box_x,box_y)])
+				revealBoxAnimation(mainBoard,[(box_x,box_y)])
 				if firstSelected==None:
 					firstSelected=(box_x,box_y)
 				else:
@@ -90,12 +88,13 @@ def main():
 						if hasGameWon(revealedBoxes):
 							gameWonAnimation(mainBoard)
 							pygame.time.wait(3000)
-
-							getRandomizedBoard()
-							generateRevealedBoxesData(False)
-
+							# if game won then start a new game
+							mainBoard=getRandomizedBoard()
+							revealedBoxes=generateRevealedBoxesData(False)
+							drawBoard(mainBoard,revealedBoxes)
+							pygame.time.wait(1000)
+							pygame.display.update()
 							startGameAnimation(mainBoard)
-
 					elif getshape1!=getShape2 or getColor1!=getColor2:
 						pygame.time.wait(1000)
 						coverBoxesAnimation(mainBoard,[(firstSelected[0],firstSelected[1]),(box_x,box_y)])
@@ -103,7 +102,6 @@ def main():
 						revealedBoxes[firstSelected[0]][firstSelected[1]]=False
 		pygame.display.update()
 
-						
 def hasGameWon(revealedBoxes):
 	flag=True
 	for box_x in range(boardWidth):
@@ -114,31 +112,29 @@ def hasGameWon(revealedBoxes):
 	return True
 
 def gameWonAnimation(board):
-	display_turf.fill(navyBlue)
+	display_surface.fill(navyBlue)
 	pygame.display.update()
 	pygame.time.wait(2000)
-	
- 
+
 def getBoxNumber(mouse_x,mouse_y):
 	for box_x in range(boardWidth):
 		for box_y in range(boardHeight):
 			left,top=leftTopCoordsOfBox(mouse_x,mouse_y)
 			boxRect=pygame.Rect(left,top,boxSize,boxSize)
-			if boxRect.collidePoint(mouse_x,mouse_y):
+			if boxRect.collidepoint(mouse_x,mouse_y):
 				return box_x,box_y
 	return None,None
 				
-
 def drawHighlightColor(board,box_x,box_y):
 	left,top=leftTopCoordsOfBox(board,box_x,box_y)
-	pygame.draw.rect(display_turf,blue,(left-5,top-5,boxSize+10,boxSize+10),5)
+	pygame.draw.rect(display_surface,highlightColor,(left-5,top-5,boxSize+10,boxSize+10),5)
 	pygame.display.update()
 
 def getRandomizedBoard():
 	icons=[]
 	for color in All_Colors:
 		for shape in All_Shapes:
-			icons.append((color,shape))
+			icons.append((shape,color))
 	random.shuffle(icons)
 	numIconsNeeded=int((boardWidth*boardHeight)/2)
 
@@ -151,18 +147,16 @@ def getRandomizedBoard():
 			column.append(icons[0])
 			del icons[0]
 		board.append(column)
-	#print board
 	return board
 
 def generateRevealedBoxesData(boolean):
 	revealedBoxes=[]
 	for i in range(boardWidth):
 		revealedBoxes.append([boolean]*boardHeight)
-	#print revealedBoxes
 	return revealedBoxes
 
 def leftTopCoordsOfBox(box_x,box_y):
-	return (x_margin+box_x*(boxSize+gapSize),y_margin+box_y*(boxSize+gapSize))
+	return int(x_margin+(box_x * (boxSize+gapSize))),int(y_margin+(box_y * (boxSize+gapSize)))
 
 def getShapeAndColor(board,box_x,box_y):
 	return board[box_x][box_y][0],board[box_x][box_y][1]
@@ -171,73 +165,75 @@ def drawIcon(shape,color,box_x,box_y):
 	left,top=leftTopCoordsOfBox(box_x,box_y)
 	x_center=left+boxSize/2
 	y_center=top+boxSize/2
+
 	if shape=='donut':
-		pygame.draw.circle(display_turf,color,(x_center,y_center),boxSize/2,5)
+		pygame.draw.circle(display_surface,color,(x_center,y_center),boxSize/2,5)
+
 	elif shape=='diamond':
-		pygame.draw.polygon(display_turf,color,((x_center,top),(left+boxSize,y_center),(x_center,top+boxSize),(left,y_center)))
+		pygame.draw.polygon(display_surface,color,((x_center,top),(left+boxSize,y_center),(x_center,top+boxSize),(left,y_center)))
+
 	elif shape=='square':
-		pygame.draw.rect(display_turf,color,(left+boxSize/4,top+boxSize/4,boxSize/2,boxSize/2))
+		pygame.draw.rect(display_surface,color,(left+boxSize/4,top+boxSize/4,boxSize/2,boxSize/2))
+
 	elif shape=='lines':
-		for i in range(0, BOXSIZE, 4):
-			pygame.draw.line(display_turf, color, (left, top + i), (left +i, top))
-			pygame.draw.line(display_turf, color, (left + i, top + boxSize- 1), (left + boxSize - 1, top + i))
+		for i in range(0, boxSize, 4):
+			pygame.draw.line(display_surface, color, (left, top + i), (left +i, top))
+			pygame.draw.line(display_surface, color, (left + i, top + boxSize- 1), (left + boxSize - 1, top + i))
+
 	elif shape=='oval':
-		pygame.draw.ellipse(display_turf,color,(left,top+boxSize/4,boxSize,boxSize/2))
+		pygame.draw.ellipse(display_surface,color,(left,top+boxSize/4,boxSize,boxSize/2))
 
-def drawBoxCover(board,boxToReveal,coverage):
-	for box in boxToReveal:
-		left,top=leftTopCoordsOfBox(box[0].box[1])
-		pygame.draw.rect(display_turf,backgroundColor,(left,top,boxSize,boxSize))
-
+def drawBoxCover(board,boxesToReveal,coverage):      # has the effect of opening and closing of boxes.
+	for box in boxesToReveal:
+		left,top=leftTopCoordsOfBox(box[0],box[1])
+		pygame.draw.rect(display_surface,backgroundColor,(left,top,boxSize,boxSize))  
 		shape,color=getShapeAndColor(board,box[0],box[1])
 		drawIcon(shape,color,box[0],box[1])
 		if coverage>0:
-			pygame.draw.rect(display_turf,boxColor,(left,top,coverage,boxSize))
+			pygame.draw.rect(display_surface,boxColor,(left,top,coverage,boxSize))
 	pygame.display.update()
 
-def coverBoxesAnimation(board,boxToCover):
-	for coverage in range(0,boxSize+8,8):
-		drawBoxCover(board,boxToCover,coverage)
+def coverBoxesAnimation(board,boxesToCover):
+	for coverage in range(0,boxSize+groupSize,8):
+		drawBoxCover(board,boxesToCover,coverage)
 
 
-def revealBoxesAnimation(board,boxToReveal):
-	for coverage in range(boxSize,-9,-8):
-		drawBoxCover(board,boxToReveal,coverage)
+def revealBoxesAnimation(board,boxesToReveal):
+	for coverage in range(boxSize,-groupSize-1,-groupSize):
+		drawBoxCover(board,boxesToReveal,coverage)
 
 
-def drawBoard(board,revealed):
+def drawBoard(board,revealed):                       # this function draws the board in its present state.
 	for box_x in range(boardWidth):
 		for box_y in range(boardHeight):
 			if not revealed[box_x][box_y]:
-				left,top=leftTopCoordsOfBox(box_x,box_y)
-				pygame.draw.rect(display_turf,box_color,(left,top,boxSize,boxSize))
+				left,top=leftTopCoordsOfBox(box_x,box_y)         # left ,top are starting pixel coordinates of a particular box.
+				pygame.draw.rect(display_surface,boxColor,(left,top,boxSize,boxSize))   # draw a white cover of boxSize x boxSize
 			else:
-				shape,color=getShapeAndColor(board,box_x,box_y)
+				shape,color=getShapeAndColor(board,box_x,box_y)     # will take shape and color if it is not revealed and draw icon
 				drawIcon(shape,color,box_x,box_y)
+
+def splitsIntoGroupOf(groupsize,boxes):
+	result=[]
+	for x in range(0,len(boxes),groupsize):
+		result.append(boxes[x:x+groupsize])
+	return result
 
 def startGameAnimation(board):
 	coveredBoxes=generateRevealedBoxesData(False)
 	boxes=[]
 	for x in range(boardWidth):
-		for y in range(boardHeight):
-			boxes.append((x,y))
+		for y in range(boardHeight):   
+			boxes.append((x,y))                      # boxes[] appends boardWidth x boardheight number of tuples like [(5,4),(2,6)] 
 	random.shuffle(boxes)
-	print coveredBoxes
-	boxGroups=splitsIntoGroup(8,boxes)
+	groupsize=8
+	boxGroups=splitsIntoGroupOf(groupsize,boxes)    # will return a list[] containing tuples of (x,y) in groups of 8 but last will
+													# be a group of 6 since it is 10 x 7 matrix
 
-	drawBoard(board,coveredBoxes)
+	drawBoard(board,coveredBoxes)			# covered boxes is a list of 10 x 7 matrix containing False.
 	for boxGroup in boxGroups:
-		revealBoxesAnimation(board,boxGroups)
-		coverBoxesAnimation(board,boxGroups)
+		revealBoxesAnimation(board,boxGroup)
+		coverBoxesAnimation(board,boxGroup)
 
-
-def splitsIntoGroup(groupsize,box):
-	result=[]
-	for x in range(0,len(box),groupsize):
-		result.append(box[x:x+groupsize])
-	#print result
-	return result
-
-def 
 if __name__=='__main__':
 	main()
