@@ -92,10 +92,20 @@ def main():
 						revealedBoxes[firstSelected[0]][firstSelected[1]]=False
 						
 
-
+def getBoxNumber(mouse_x,mouse_y):
+	for box_x in range(boardWidth):
+		for box_y in range(boardHeight):
+			left,top=leftTopCoordsOfBox(mouse_x,mouse_y)
+			boxRect=pygame.Rect(left,top,boxSize,boxSize)
+			if boxRect.collidePoint(mouse_x,mouse_y):
+				return box_x,box_y
+	return None,None
 				
 
-
+def drawHighlightColor(board,box_x,box_y):
+	left,top=leftTopCoordsOfBox(board,box_x,box_y)
+	pygame.draw.rect(display_turf,blue,(left-5,top-5,boxSize+10,boxSize+10),5)
+	pygame.display.update()
 
 def getRandomizedBoard():
 	icons=[]
