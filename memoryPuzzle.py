@@ -56,9 +56,11 @@ def main():
 	basic_font=pygame.font.Font('freesansbold.ttf', 20)	                                                         # initializing the clock
 	global display_surface,start_rect,start_surface,exit_rect,exit_surface
 	display_surface=pygame.display.set_mode((windowWidth,windowHeight))     #  will return a surface object on which everything will
-	start_surface,start_rect=makeText('Start Game',gray,lightNavyBlue,500,10)
+                  															#  be laid upon
+	start_surface,start_rect=makeText('New Game',gray,lightNavyBlue,500,10)
 	exit_surface,exit_rect=makeText('Exit Game',gray,lightNavyBlue,500,40)
-																		#  be laid upon
+	#reset_surface,reset_rect=makeText('Reset Game',gray,lightNavyBlue,500,70)	
+
 	pygame.display.set_caption('Memory Puzzle')
 	display_surface.fill(backgroundColor)
 	mainBoard=getRandomizedBoard()                             # will return a 10x7 board with each place containing a tuple of 
@@ -67,8 +69,11 @@ def main():
 	while True:
 														# whether it is revealed or covered.In the beginning it is False by default
 		pygame.draw.circle(display_surface,red,(30,30),10)
+
 		display_surface.blit(start_surface,start_rect)
 		display_surface.blit(exit_surface,exit_rect)
+		#display_surface.blit(reset_surface,reset_rect)
+
 		for event in pygame.event.get():
 			if event.type==QUIT:
 				pygame.quit()
@@ -78,7 +83,7 @@ def main():
 				mouse_x,mouse_y=event.pos
 
 				if start_rect.collidepoint(event.pos):
-
+					pygame.time.delay(500)
 					startGameAnimation(mainBoard) 
 					pygame.draw.circle(display_surface,green,(30,30),10)       # signal that game has started.
 					pygame.display.update()
@@ -88,8 +93,8 @@ def main():
 					while True:
 						display_surface.fill(backgroundColor)
 						isMouseClicked=False
-						drawBoard(mainBoard,revealedBoxes)
-						pygame.draw.circle(display_surface,green,(30,30),10)
+						drawBoard(mainBoard,revealedBoxes,green)
+						
 						for event in pygame.event.get():
 							if event.type==QUIT:
 								pygame.quit()
@@ -102,6 +107,15 @@ def main():
 								if exit_rect.collidepoint(event.pos):
 									pygame.quit()
 									sys.exit()
+								elif start_rect.collidepoint(event.pos):
+									mainBoard=getRandomizedBoard()
+									revealedBoxes=generateRevealedBoxesData(False)
+									display_surface.fill(backgroundColor)
+									#drawBoard(mainBoard,revealedBoxes,red)
+									pygame.time.delay(500)
+									startGameAnimation(mainBoard)
+									pygame.draw.circle(display_surface,green,(30,30),10)
+									pygame.display.update()
 								mouse_x,mouse_y=event.pos
 								isMouseClicked=True
 
@@ -129,15 +143,23 @@ def main():
 										mainBoard=getRandomizedBoard()
 										revealedBoxes=generateRevealedBoxesData(False)
 										display_surface.fill(backgroundColor)
-										drawBoard(mainBoard,revealedBoxes)
+										pygame.draw.circle(display_surface,red,(30,30),10)
 										pygame.display.update()
 										gameWon=True
 										break
-										#startGameAnimation(mainBoard)
+			
 									firstSelected=None
 				elif exit_rect.collidepoint(event.pos):
 					pygame.quit()
 					sys.exit()
+				"""
+				elif reset_rect.collidepoint(event.pos):
+					mainBoard=getRandomizedBoard()
+					revealedBoxes=generateRevealedBoxesData(False)
+					display_surface.fill(backgroundColor)
+					drawBoard(mainBoard,revealedBoxes,red)
+					pygame.display.update()
+				"""
 			elif event.type==MOUSEMOTION:
 				mouse_x,mouse_y=event.pos
 				if insideCircle(mouse_x,mouse_y):
@@ -273,7 +295,7 @@ def revealBoxesAnimation(board,boxesToReveal):
 		drawBoxCover(board,boxesToReveal,coverage)
 
 
-def drawBoard(board,revealed):                       # this function draws the board in its present state.
+def drawBoard(board,revealed,colorOfCircle):                       # this function draws the board in its present state.
 	for box_x in range(boardWidth):
 		for box_y in range(boardHeight):
 			if not revealed[box_x][box_y]:
@@ -282,10 +304,9 @@ def drawBoard(board,revealed):                       # this function draws the b
 			else:
 				shape,color=getShapeAndColor(board,box_x,box_y)     # will take shape and color if it is not revealed and draw icon
 				drawIcon(shape,color,box_x,box_y)
-	
+	pygame.draw.circle(display_surface,colorOfCircle,(30,30),10)
 	display_surface.blit(start_surface,start_rect)
 	display_surface.blit(exit_surface,exit_rect)
-
 
 def splitsIntoGroupOf(groupsize,boxes):
 	result=[]
@@ -305,7 +326,7 @@ def startGameAnimation(board):
 	boxGroups=splitsIntoGroupOf(groupSize,boxes)    # will return a list[] containing tuples of (x,y) in groups of 8 but last will
 													# be a group of 6 since it is 10 x 7 matrix
 
-	drawBoard(board,coveredBoxes)			# covered boxes is a list of 10 x 7 matrix containing False.
+	drawBoard(board,coveredBoxes,red)			# covered boxes is a list of 10 x 7 matrix containing False.
 	for boxGroup in boxGroups:
 		revealBoxesAnimation(board,boxGroup)
 		pygame.time.delay(delay*2)
