@@ -1,6 +1,7 @@
 
 import pygame,sys,random
 from pygame.locals import *
+import time
 
 black=(0,0,0)
 white=(255,255,255)
@@ -34,8 +35,8 @@ gapSize=10
 boardWidth=5
 boardHeight=4
 
-groupSize=6
-delay=500           # in miliseconds
+groupSize=4
+delay=500         # in miliseconds
 
 assert (boardWidth*boardHeight)%2==0,"Board should have even number of boxes"
 
@@ -52,7 +53,7 @@ def main():
 	mouse_x=0
 	mouse_y=0 
 	pygame.init() 
-	global basic_font 
+	global basic_font,start_time 
 	basic_font=pygame.font.Font('freesansbold.ttf', 20)	                                                         # initializing the clock
 	global display_surface,start_rect,start_surface,exit_rect,exit_surface
 	display_surface=pygame.display.set_mode((windowWidth,windowHeight))     #  will return a surface object on which everything will
@@ -82,19 +83,32 @@ def main():
 			elif event.type==MOUSEBUTTONUP:
 				mouse_x,mouse_y=event.pos
 
-				if start_rect.collidepoint(event.pos):
+				if start_rect.collidepoint(event.pos):          # on clicking the new Game button.
 					pygame.time.delay(500)
+
 					startGameAnimation(mainBoard) 
+
+					start_time=time.time() 									# after all the initial revealing happens ,jst start counting 
+																			# the time
+
 					pygame.draw.circle(display_surface,green,(30,30),10)       # signal that game has started.
 					pygame.display.update()
 					 
 					firstSelected=None
 
 					while True:
+
 						display_surface.fill(backgroundColor)
 						isMouseClicked=False
 						drawBoard(mainBoard,revealedBoxes,green)
-						
+						# time calculation and showing
+						cur_time=time.time()
+						time_surf=basic_font.render('Time:'+ str(int(cur_time-start_time)),True,gray,lightNavyBlue)
+						time_rect=time_surf.get_rect()
+						time_rect.topleft=(500,80)
+						display_surface.blit(time_surf,time_rect)
+						pygame.display.update()
+
 						for event in pygame.event.get():
 							if event.type==QUIT:
 								pygame.quit()
@@ -121,9 +135,9 @@ def main():
 
 						box_x,box_y=getBoxNumber(mouse_x,mouse_y)
 						if box_x!=None and box_y!=None:
-							if not revealedBoxes[box_x][box_y]:
-								drawHighlightColor(mainBoard,box_x,box_y)
-								pygame.display.update()
+							#if not revealedBoxes[box_x][box_y]:
+								#drawHighlightColor(mainBoard,box_x,box_y)
+								#pygame.display.update()
 							if not revealedBoxes[box_x][box_y] and isMouseClicked==True:
 								revealBoxesAnimation(mainBoard,[(box_x,box_y)])
 								revealedBoxes[box_x][box_y]=True
@@ -166,8 +180,7 @@ def main():
 					pygame.draw.circle(display_surface,white,(30,30),10)
 
 		pygame.display.update()
-		pygame.time.delay(delay)
-
+		#pygame.time.delay(delay)
 
 def makeText(text, color, bgcolor, top, left):
 	# create the Surface and Rect objects for some text.
