@@ -31,8 +31,8 @@ windowWidth=640
 windowHeight=480
 boxSize=40
 gapSize=10
-boardWidth=5
-boardHeight=4
+boardWidth=4
+boardHeight=3
 
 groupSize=4
 delay=500         # in miliseconds
@@ -45,21 +45,20 @@ y_margin=int((windowHeight-(boardHeight*boxSize+gapSize*(boardHeight-1)))/2)   #
 All_Colors=[purple,blue,green,red,cyan,yellow,orange]                         # it doesn't matters if u use a list or tuple here.
 All_Shapes=[donut,square,oval,diamond,lines]
 
-fpsClock=pygame.time.Clock()
+fpsClock=pygame.time.Clock()				# initializing the clock
 
 def main():
 
 	mouse_x=0
 	mouse_y=0 
 	pygame.init() 
-	global basic_font,start_time 
-	basic_font=pygame.font.Font('freesansbold.ttf', 20)	                                                         # initializing the clock
+	global basic_font,start_time,final_time
+	basic_font=pygame.font.Font('freesansbold.ttf', 20)	                           
 	global display_surface,start_rect,start_surface,exit_rect,exit_surface
 	display_surface=pygame.display.set_mode((windowWidth,windowHeight))     #  will return a surface object on which everything will
                   															#  be laid upon
 	start_surface,start_rect=makeText('New Game',gray,lightNavyBlue,500,10)
 	exit_surface,exit_rect=makeText('Exit Game',gray,lightNavyBlue,500,40)
-	#reset_surface,reset_rect=makeText('Reset Game',gray,lightNavyBlue,500,70)	
 
 	pygame.display.set_caption('Memory Puzzle')
 	display_surface.fill(backgroundColor)
@@ -72,7 +71,6 @@ def main():
 
 		display_surface.blit(start_surface,start_rect)
 		display_surface.blit(exit_surface,exit_rect)
-		#display_surface.blit(reset_surface,reset_rect)
 
 		for event in pygame.event.get():
 			if event.type==QUIT:
@@ -152,7 +150,8 @@ def main():
 										revealedBoxes[box_x][box_y]=False
 										revealedBoxes[firstSelected[0]][firstSelected[1]]=False
 									elif hasGameWon(revealedBoxes):
-										gameWonAnimation(mainBoard)
+										#final_time=cur_time
+										gameWonAnimation(mainBoard,cur_time)
 										mainBoard=getRandomizedBoard()
 										revealedBoxes=generateRevealedBoxesData(False)
 										display_surface.fill(backgroundColor)
@@ -165,23 +164,16 @@ def main():
 				elif exit_rect.collidepoint(event.pos):
 					pygame.quit()
 					sys.exit()
-				"""
-				elif reset_rect.collidepoint(event.pos):
-					mainBoard=getRandomizedBoard()
-					revealedBoxes=generateRevealedBoxesData(False)
-					display_surface.fill(backgroundColor)
-					drawBoard(mainBoard,revealedBoxes,red)
-					pygame.display.update()
-				"""
+			
 			elif event.type==MOUSEMOTION:
 				mouse_x,mouse_y=event.pos
 				if insideCircle(mouse_x,mouse_y):
 					pygame.draw.circle(display_surface,white,(30,30),10)
 
 		pygame.display.update()
-		#pygame.time.delay(delay)
+		
 
-def makeText(text, color, bgcolor, top, left):
+def makeText(text, color, bgcolor, top, left):				# for making text like new game and exit game
 	# create the Surface and Rect objects for some text.
 	textSurf = basic_font.render(text, True, color, bgcolor)
 	textRect = textSurf.get_rect()
@@ -195,7 +187,7 @@ def insideCircle(x,y):
 		return False
 
 
-def hasGameWon(revealedBoxes):
+def hasGameWon(revealedBoxes):				# checks whether game has ended or not #
 	flag=True
 	for box_x in range(boardWidth):
 		for box_y in range(boardHeight):
@@ -204,12 +196,20 @@ def hasGameWon(revealedBoxes):
 				return False
 	return True
 
-def gameWonAnimation(board):
-	display_surface.fill(yellow)
+def gameWonAnimation(board,final_time):			# after game completion , background changes appears.
+	
+	display_surface.fill(cyan)
+	timeToComplete=str(int(final_time-start_time))
+
+	finalTime_surf,finalTime_rect=makeText('Time Taken : '+timeToComplete+' secs',gray,lightNavyBlue,200,200)
+	display_surface.blit(finalTime_surf,finalTime_rect)
 	pygame.display.update()
 	pygame.time.delay(3000)
+	playerName=raw_input('Enter ur name for putting in records:') 
+	with open('TimeRecord.txt','a') as appendFile:
+		appendFile.write('%s : %s secs\n'%(playerName,timeToComplete))
 
-def getBoxNumber(mouse_x,mouse_y):
+def getBoxNumber(mouse_x,mouse_y):			# given the pixel values of the starting of a box , returns the box numbers.
 	for box_x in range(boardWidth):
 		for box_y in range(boardHeight):
 			left,top=leftTopCoordsOfBox(box_x,box_y)
@@ -218,11 +218,11 @@ def getBoxNumber(mouse_x,mouse_y):
 				return box_x,box_y
 	return None,None
 				
-def drawHighlightColor(board,box_x,box_y):
+def drawHighlightColor(board,box_x,box_y):       	# highlights the boxes if cursor hovers over it
 	left,top=leftTopCoordsOfBox(box_x,box_y)
 	pygame.draw.rect(display_surface,highlightColor,(left-5,top-5,boxSize+10,boxSize+10),5)
 
-def getRandomizedBoard():
+def getRandomizedBoard():		 # creates a row x col list having random tuples of (shape,color)
 	icons=[]
 	for color in All_Colors:
 		for shape in All_Shapes:
@@ -231,18 +231,9 @@ def getRandomizedBoard():
 	numIconsNeeded=int((boardWidth*boardHeight)/2)
 
 	icons=icons[0:numIconsNeeded]*2
-	#print icons
 	random.shuffle(icons)                                  # for more randomization
 	board=[]
-	"""	
-	for x in range(boardHeight):
-		column=[]
-		for y in range(boardWidth):
-			column.append(icons[0])
-			del icons[0]
-		board.append(column)
-	return board
-	"""
+	
 	for x in range(boardWidth):
 		column=[]
 		for y in range(boardHeight):
@@ -257,13 +248,13 @@ def generateRevealedBoxesData(boolean):
 		revealedBoxes.append([boolean]*boardHeight)
 	return revealedBoxes
 
-def leftTopCoordsOfBox(box_x,box_y):
+def leftTopCoordsOfBox(box_x,box_y):				# given box numbers , returns the pixel values of the topleft corner 
 	return int(x_margin+(box_x * (boxSize+gapSize))),int(y_margin+(box_y * (boxSize+gapSize)))
 
 def getShapeAndColor(board,box_x,box_y):
 	return board[box_x][box_y][0],board[box_x][box_y][1]
 
-def drawIcon(shape,color,box_x,box_y):
+def drawIcon(shape,color,box_x,box_y):			# function name clarifies
 	left,top=leftTopCoordsOfBox(box_x,box_y)
 	x_center=left+boxSize/2
 	y_center=top+boxSize/2
@@ -297,12 +288,12 @@ def drawBoxCover(board,boxesToReveal,coverage):      # has the effect of opening
 	pygame.display.update()            
 	pygame.time.delay(delay/10)                 # After revealing 8 boxes partially or fully it will wait.
 
-def coverBoxesAnimation(board,boxesToCover):
+def coverBoxesAnimation(board,boxesToCover):		# covers the box from both sides
 	for coverage in range(0,boxSize+groupSize,8):
 		drawBoxCover(board,boxesToCover,coverage)
 
 
-def revealBoxesAnimation(board,boxesToReveal):
+def revealBoxesAnimation(board,boxesToReveal):		# opens the boxes from the middle
 	for coverage in range(boxSize,-groupSize-1,-groupSize):
 		drawBoxCover(board,boxesToReveal,coverage)
 
@@ -320,7 +311,7 @@ def drawBoard(board,revealed,colorOfCircle):                       # this functi
 	display_surface.blit(start_surface,start_rect)
 	display_surface.blit(exit_surface,exit_rect)
 
-def splitsIntoGroupOf(groupsize,boxes):
+def splitsIntoGroupOf(groupsize,boxes):				# creates group of random boxes to show during startGameAnimation
 	result=[]
 	for x in range(0,len(boxes),groupsize):
 		result.append(boxes[x:x+groupsize])
