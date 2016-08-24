@@ -1,4 +1,5 @@
 import pygame,sys,random
+from Tkinter import *
 from pygame.locals import *
 import time
 
@@ -196,18 +197,39 @@ def hasGameWon(revealedBoxes):				# checks whether game has ended or not #
 				return False
 	return True
 
+def get_Name():
+
+	playerName=name_entry.get()
+	with open('TimeRecord.txt','a') as appendFile:
+		appendFile.write('%s : %s secs on %s\n'%(playerName,timeToComplete,time.ctime()))
+	#for widget in frame.winfo_children():
+		#widget.destroy()
+	frame.destroy()
+
 def gameWonAnimation(board,final_time):			# after game completion , background changes appears.
 	
 	display_surface.fill(cyan)
+	global timeToComplete
 	timeToComplete=str(int(final_time-start_time))
 
 	finalTime_surf,finalTime_rect=makeText('Time Taken : '+timeToComplete+' secs',gray,lightNavyBlue,200,200)
 	display_surface.blit(finalTime_surf,finalTime_rect)
 	pygame.display.update()
 	pygame.time.delay(3000)
-	playerName=raw_input('Enter ur name for putting in records:') 
-	with open('TimeRecord.txt','a') as appendFile:
-		appendFile.write('%s : %s secs\n'%(playerName,timeToComplete))
+
+	global frame
+	frame=Tk()
+	frame.title('LeaderBoard Name')
+	frame.geometry('200x100+350+150')
+	frame.config(bg='#ABADAC')
+	frame.resizable(width = False,height = False)
+
+	global name_entry
+	name_entry=Entry(frame,width=40)
+	name_entry.place(x=20,y=30)
+	Button(frame,text='Proceed',command=get_Name).place(x=70,y=60)
+	frame.mainloop()
+	
 
 def getBoxNumber(mouse_x,mouse_y):			# given the pixel values of the starting of a box , returns the box numbers.
 	for box_x in range(boardWidth):
